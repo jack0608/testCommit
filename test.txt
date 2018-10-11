@@ -1,1 +1,1 @@
-git test dd ㅁㅁ
+git test dd
