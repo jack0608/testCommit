@@ -23,7 +23,7 @@ class bcolors:
     C_WHITE  = "\033[37m"
 
 path_dir = 'C:\\Users\\dnfkr\\Downloads\\test'
-
+```
 ## 파일 이동
 def move(origin_path, move_path):
     try:
@@ -40,7 +40,7 @@ def move(origin_path, move_path):
         if e.errno != 17:
             print(bcolors.C_RED + "Failed to create directory!!!!!" + bcolors.C_END)
             raise
-
+```
 ## 하위 폴더까지 찾아가서 확장자에 맞게 기능 수행
 def subdir_search(path_dir):
     try:
