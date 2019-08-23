@@ -1,3 +1,4 @@
+'''
 import os
 import shutil
 import tomotopy as tp
@@ -124,3 +125,4 @@ sched.add_job(subdir_search(path_dir), 'interval', seconds=10)
 
 # 스케줄링 시작
 sched.start()
+'''
