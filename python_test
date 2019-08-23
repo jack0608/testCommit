@@ -1,0 +1,126 @@
+import os
+import shutil
+import tomotopy as tp
+import gensim
+from konlpy.tag import Twitter
+from collections import Counter
+from apscheduler.schedulers.blocking import BlockingScheduler
+
+## 프린트 색상 클래스
+class bcolors:
+    C_END     = "\033[0m"
+    C_BOLD    = "\033[1m"
+    C_INVERSE = "\033[7m"
+
+    C_BLACK  = "\033[30m"
+    C_RED    = "\033[31m"
+    C_GREEN  = "\033[32m"
+    C_YELLOW = "\033[33m"
+    C_BLUE   = "\033[34m"
+    C_PURPLE = "\033[35m"
+    C_CYAN   = "\033[36m"
+    C_WHITE  = "\033[37m"
+
+path_dir = 'C:\\Users\\dnfkr\\Downloads\\test'
+
+## 파일 이동
+def move(origin_path, move_path):
+    try:
+        if not(os.path.isdir(move_path)):
+            os.makedirs(os.path.join(move_path))
+            print('Make Folder : ' + move_path)
+
+        shutil.move(origin_path, move_path)
+        print(bcolors.C_YELLOW + "origin : " + origin_path + bcolors.C_END)
+        print(bcolors.C_YELLOW + "move : " + move_path + bcolors.C_END)
+        print()
+
+    except OSError as e:
+        if e.errno != 17:
+            print(bcolors.C_RED + "Failed to create directory!!!!!" + bcolors.C_END)
+            raise
+
+## 하위 폴더까지 찾아가서 확장자에 맞게 기능 수행
+def subdir_search(path_dir):
+    try:
+        for (path, dir, files) in os.walk(path_dir):
+            for filename in files:
+                ext = os.path.splitext(filename)[-1]
+                if ext == '.txt':
+                    print("%s/%s" % (path, filename))
+
+                    f = open(path+'\\'+filename, 'r')
+                    while True:
+                        line = f.readline()
+                        if not line: 
+                            break
+                        #print(line)
+                    f.close()
+                elif ext == '.exe' or ext == '.bat' or ext == '.sh':
+                    move(path + '\\' + filename, path_dir + '\\' + 'execute')
+                elif ext == '.png' or  ext == '.jpg':
+                    move(path + '\\' + filename, path_dir + '\\' + 'picture')
+                else:
+                    print('Not Support Extension : ' + ext)
+                    print('FileName : ' + filename)
+                    move(path + '\\' + filename, path_dir + '\\' + 'etc')
+
+    except PermissionError:
+        pass
+
+#subdir_search(path_dir)
+
+#origin_path = 'C:\\Users\\dnfkr\\Downloads\\test\\축구.txt'
+#move_path = 'C:\\Users\\dnfkr\\Downloads\\test\\sport'
+
+#move(origin_path, move_path)
+
+def useTomotopy(origin_path):
+    mdl = tp.LDAModel(k=1)
+    mdl.add_doc(origin_path)
+    
+    for i in range(100):
+        mdl.train()
+        print('Iteration: {}\tLog-likelihood: {}'.format(i, mdl.ll_per_word))
+    
+    for k in range(mdl.k):
+        print('Top 10 words of topic #{}'.format(k))
+        print(mdl.get_topic_words(k, top_n=10))
+
+
+def getContentTopic(origin_path):
+    twitter = Twitter()
+
+    content = ''
+    f = open(origin_path, 'r')
+    while True:
+        line = f.readline()
+        if not line: 
+            break
+        content+=line.rstrip()
+    f.close()
+
+    #print(content)
+    #print(twitter.nouns(content))
+
+    nouns = []
+
+    for words in twitter.nouns(content):
+        if(len(words) > 1):
+            nouns.append(words)
+
+    print(nouns)
+    useTomotopy(nouns)
+
+    result = Counter(nouns)
+    print(result.most_common(10))
+
+#getContentTopic(origin_path)
+#useTomotopy(origin_path)
+
+sched = BlockingScheduler()
+
+sched.add_job(subdir_search(path_dir), 'interval', seconds=10)
+
+# 스케줄링 시작
+sched.start()
